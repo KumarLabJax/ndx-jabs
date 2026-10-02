@@ -50,31 +50,30 @@ jobs:
         with:
           fetch-depth: 0  # tags are required to determine the version
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ matrix.python-ver }}
 
       - name: Install run requirements (minimum)
         if: ${{ matrix.requirements == 'minimum' }}
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install . --group test-min-deps
-          python -m pip list
-          python -m pip check
+          # resolve every direct dependency to the lowest version allowed in pyproject.toml
+          uv sync --group test --resolution lowest-direct
+          uv pip list
+          uv pip check
 
       - name: Install run requirements (upgraded)
         if: ${{ matrix.requirements == 'upgraded' }}
         run: |
-          python -m pip install --upgrade pip
           # force upgrade of all dependencies to latest versions within allowed range
-          python -m pip install -U . --group test
-          python -m pip list
-          python -m pip check
+          uv sync --upgrade --group test
+          uv pip list
+          uv pip check
 
       - name: Run tests
         run: |
-          pytest -v
+          uv run --no-sync pytest -v
 
   build:
     runs-on: ubuntu-latest
@@ -83,15 +82,14 @@ jobs:
         with:
           fetch-depth: 0  # tags are required to determine the version
 
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
-          python-version: "3.x"  # use the latest stable version of Python
+          python-version: "3.13"
 
       - name: Build and check wheel and source distribution
         run: |
-          python -m pip install --upgrade build twine
-          python -m build
-          twine check dist/*
+          uv build
+          uvx twine check dist/*
 
       - name: Upload wheel and sdist artifacts
         uses: actions/upload-artifact@v6
@@ -129,27 +127,31 @@ jobs:
           name: archive
           path: archive/
 
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
-          python-version: "3.x"  # use the latest stable version of Python
+          python-version: "3.13"
 
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
-      - name: Update pip
-        run: python -m pip install --upgrade pip
+      # The environment lives outside the workspace so the checkout below does not delete it.
+      - name: Create virtual environment
+        run: |
+          uv venv "$RUNNER_TEMP/venv"
+          echo "VIRTUAL_ENV=$RUNNER_TEMP/venv" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Install wheel
         if: matrix.package == 'wheel'
-        run: python -m pip install dist/*.whl
+        run: uv pip install dist/*.whl
 
       - name: Install sdist
         if: matrix.package == 'sdist'
-        run: python -m pip install dist/*.tar.gz
+        run: uv pip install dist/*.tar.gz
 
       - name: Install archive
         if: matrix.package == 'archive'
-        run: python -m pip install archive/archive.tgz
+        run: uv pip install archive/archive.tgz
 
       - name: Check installed package
         run: python -c "import ndx_jabs"
@@ -159,5 +161,5 @@ jobs:
 
       - name: Install test dependencies from pyproject.toml and run tests
         run: |
-          python -m pip install --group test
+          uv pip install --group test
           pytest -v

@@ -62,5 +62,17 @@ with NWBHDF5IO("contours.nwb", "w") as io:
 
 The extension spec is cached in files that use it, so readers without `ndx-jabs` installed can still open them.
 
+## Development
+
+This project uses [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync                                            # install the package and dev tools into .venv
+uv run python src/spec/create_extension_spec.py    # regenerate spec/ after editing the spec
+uv run pytest                                      # run the tests
+uv sync --group test --resolution lowest-direct    # test against the minimum supported dependency versions
+uv build                                           # build the wheel and source distribution
+```
+
 ---
 This extension was created using [ndx-template](https://github.com/nwb-extensions/ndx-template).

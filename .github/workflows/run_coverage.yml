@@ -31,21 +31,20 @@ jobs:
         with:
           fetch-depth: 0  # tags are required to determine the version
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ env.PYTHON }}
 
       - name: Install package and test dependencies
         run: |
-          python -m pip install --upgrade pip
           # force upgrade of all dependencies to latest versions within allowed range
-          python -m pip install -U --group test .
-          python -m pip list
-          python -m pip check
+          uv sync --upgrade --group test
+          uv pip list
+          uv pip check
       - name: Run tests and generate coverage report
         run: |
-          pytest --cov --cov-report=xml --cov-report=term  # codecov uploader requires xml format
+          uv run --no-sync pytest --cov --cov-report=xml --cov-report=term  # codecov uploader requires xml format
 
       # TODO uncomment after setting up repo on codecov.io and adding token
       # - name: Upload coverage to Codecov

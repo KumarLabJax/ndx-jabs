@@ -1,0 +1,101 @@
+# Publish to PyPI and create a GitHub release when a version tag is pushed, e.g. `git tag 0.1.0 && git push origin 0.1.0`.
+# A leading "v" (v0.1.0) is also accepted. Pre-release versions (0.2.0a1, 0.2.0rc1) are marked as such on GitHub.
+#
+# Publishing uses PyPI trusted publishing (OIDC), so no API token is stored. It requires a trusted publisher
+# configured on PyPI for this repository, workflow file `publish.yml` and environment `pypi`.
+name: Publish
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+jobs:
+  build:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.13"
+
+      - name: Check that the tag, package version and spec version match
+        run: |
+          python - <<'EOF'
+          import os
+          import re
+          import tomllib
+
+          tag = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          with open("pyproject.toml", "rb") as f:
+              package_version = tomllib.load(f)["project"]["version"]
+          with open("spec/ndx-jabs.namespace.yaml") as f:
+              spec_version = re.search(r"^\s*version:\s*(\S+)\s*$", f.read(), re.MULTILINE).group(1).strip("'\"")
+
+          print(f"tag={tag} pyproject={package_version} spec={spec_version}")
+          if not tag == package_version == spec_version:
+              raise SystemExit("Tag, pyproject.toml version and spec/ndx-jabs.namespace.yaml version must all match.")
+          EOF
+
+      - name: Run tests
+        run: |
+          uv sync --group test
+          uv run --no-sync pytest -v
+
+      - name: Build and check wheel and source distribution
+        run: |
+          uv build
+          uvx twine check dist/*
+
+      - name: Upload wheel and sdist artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: dist
+          path: dist/
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/ndx-jabs/
+    permissions:
+      id-token: write  # required for PyPI trusted publishing
+    steps:
+      - name: Download wheel and sdist artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.2.0
+
+      - name: Publish to PyPI
+        run: uv publish --trusted-publishing always
+
+  github-release:
+    name: Create GitHub release
+    needs: [publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # required to create a release
+    steps:
+      - name: Download wheel and sdist artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          if [[ "$GITHUB_REF_NAME" =~ [a-zA-Z] && ! "$GITHUB_REF_NAME" =~ ^v[0-9.]+$ ]]; then prerelease="--prerelease"; fi
+          gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes $prerelease

@@ -74,5 +74,20 @@ uv sync --group test --resolution lowest-direct    # test against the minimum su
 uv build                                           # build the wheel and source distribution
 ```
 
+## Releasing
+
+1. Update `version` in `pyproject.toml` and in `src/spec/create_extension_spec.py`, then run
+   `uv run python src/spec/create_extension_spec.py` to regenerate `spec/`.
+2. Update `CHANGELOG.md`, commit, and merge to `main`.
+3. Tag the commit and push the tag:
+
+   ```bash
+   git tag 0.1.0
+   git push origin 0.1.0
+   ```
+
+The `Publish` workflow checks that the tag, `pyproject.toml` and spec versions match, runs the tests, publishes to
+[PyPI](https://pypi.org/project/ndx-jabs/) using trusted publishing, and creates a GitHub release.
+
 ---
 This extension was created using [ndx-template](https://github.com/nwb-extensions/ndx-template).

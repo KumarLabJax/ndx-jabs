@@ -2,7 +2,7 @@ groups:
 - neurodata_type_def: ContourSeries
   neurodata_type_inc: TimeSeries
   doc: Per-frame instance segmentation contours for a single animal, as produced
-    by JABS. Each frame holds up to n_contours closed polygons, because a 
+    by JABS. Each frame holds up to num_contours closed polygons, because a 
     segmentation can have several disjoint blobs and holes. Contours and vertex 
     lists are padded to fixed capacities with the padding value; the capacities 
     are the per-file maxima chosen by the producer.

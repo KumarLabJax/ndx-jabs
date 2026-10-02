@@ -3,8 +3,8 @@ namespaces:
   - The Jackson Laboratory
   contact:
   - glen.beane@jax.org
-  doc: Extension for storing the internal data products of JABS (JAX Animal 
-    Behavior System) that have no tool-agnostic NWB representation.
+  doc: NWB extension for storing JABS (JAX Animal Behavior System) algorithm 
+    internals, such as instance segmentation contours
   name: ndx-jabs
   schema:
   - namespace: core

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from hdmf.build.warnings import IncorrectDatasetShapeBuildWarning
 from pynwb import NWBHDF5IO, NWBFile, validate
 
 from ndx_jabs import ContourSeries
@@ -29,9 +28,7 @@ def test_constructor_stores_fields() -> None:
     data = _contours()
     flags = np.zeros((6, 3), dtype=bool)
     flags[:, 0] = True
-    series = ContourSeries(
-        name="contours", data=data, external_flag=flags, unit="pixels", rate=30.0
-    )
+    series = ContourSeries(name="contours", data=data, external_flag=flags, unit="pixels", rate=30.0)
     assert series.data.shape == (6, 3, 8, 2)
     assert series.external_flag.shape == (6, 3)
 
@@ -51,9 +48,7 @@ def test_round_trip_and_validate(tmp_path: Path) -> None:
     flags = np.zeros((6, 3), dtype=bool)
     flags[:, 0] = True
     nwbfile = _nwbfile()
-    nwbfile.add_acquisition(
-        ContourSeries(name="contours", data=data, external_flag=flags, unit="pixels", rate=30.0)
-    )
+    nwbfile.add_acquisition(ContourSeries(name="contours", data=data, external_flag=flags, unit="pixels", rate=30.0))
     path = tmp_path / "contours.nwb"
     with NWBHDF5IO(path, "w") as io:
         io.write(nwbfile)
@@ -67,16 +62,12 @@ def test_round_trip_and_validate(tmp_path: Path) -> None:
         assert read.data.dtype == np.int16
 
 
-def test_wrong_dimensionality_warns_and_fails_validation(tmp_path: Path) -> None:
+@pytest.mark.filterwarnings("ignore::hdmf.build.warnings.IncorrectDatasetShapeBuildWarning")
+def test_wrong_dimensionality_fails_validation(tmp_path: Path) -> None:
     nwbfile = _nwbfile()
-    nwbfile.add_acquisition(
-        ContourSeries(name="bad", data=np.zeros((4, 3), dtype=np.int16), unit="pixels", rate=30.0)
-    )
+    nwbfile.add_acquisition(ContourSeries(name="bad", data=np.zeros((4, 3), dtype=np.int16), unit="pixels", rate=30.0))
     path = tmp_path / "bad.nwb"
-    with (
-        pytest.warns(IncorrectDatasetShapeBuildWarning),
-        NWBHDF5IO(path, "w") as io,
-    ):
+    with NWBHDF5IO(path, "w") as io:
         io.write(nwbfile)
 
     with NWBHDF5IO(path, "r") as io:

@@ -151,7 +151,11 @@ jobs:
 
       - name: Install archive
         if: matrix.package == 'archive'
-        run: uv pip install archive/archive.tgz
+        run: |
+          # uv only accepts PEP 625 sdist filenames, so install from the extracted archive contents
+          mkdir archive/extracted
+          tar -xzf archive/archive.tgz -C archive/extracted
+          uv pip install ./archive/extracted
 
       - name: Check installed package
         run: python -c "import ndx_jabs"

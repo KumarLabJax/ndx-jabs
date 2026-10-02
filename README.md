@@ -8,6 +8,11 @@ This extension holds the pieces that are internal to the
 [JABS](https://github.com/KumarLabJax/JABS-behavior-classifier) algorithms, so JABS users can keep them in their NWB
 files without adding them to the core schema.
 
+![JABS video frame, pose keypoints, and segmentation contour for one mouse](https://raw.githubusercontent.com/KumarLabJax/ndx-jabs/main/docs/images/contour-rendering-example.gif)
+
+*Left: video frame with the region around one mouse boxed. Middle: JABS pose keypoints (12 named points) for that mouse.
+Right: the segmentation contour JABS produces for the same mouse, stored by `ContourSeries`.*
+
 ## Installation
 
 ```bash

@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ndx-jabs"
+version = "0.1.0"
+description = "NWB extension for storing JABS (JAX Animal Behavior System) algorithm internals, such as instance segmentation contours"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "The Jackson Laboratory", email = "glen.beane@jax.org" }]
+keywords = ["NWB", "NeurodataWithoutBorders", "ndx-extension", "nwb-extension", "JABS"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = ["pynwb>=2.6.0", "hdmf>=3.13.0"]
+
+[project.urls]
+Homepage = "https://github.com/KumarLabJax/ndx-jabs"
+"Bug Tracker" = "https://github.com/KumarLabJax/ndx-jabs/issues"
+Changelog = "https://github.com/KumarLabJax/ndx-jabs/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.5", "nwbinspector>=0.6"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pynwb/ndx_jabs"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"spec" = "ndx_jabs/spec"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/pynwb", "src/spec", "spec", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["src/pynwb/tests"]
+
+[tool.ruff]
+line-length = 99
+src = ["src/pynwb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,12 @@
+namespaces:
+- author:
+  - The Jackson Laboratory
+  contact:
+  - glen.beane@jax.org
+  doc: Extension for storing the internal data products of JABS (JAX Animal 
+    Behavior System) that have no tool-agnostic NWB representation.
+  name: ndx-jabs
+  schema:
+  - namespace: core
+  - source: ndx-jabs.extensions.yaml
+  version: 0.1.0

@@ -1,0 +1,41 @@
+groups:
+- neurodata_type_def: ContourSeries
+  neurodata_type_inc: TimeSeries
+  doc: Per-frame instance segmentation contours for a single animal, as produced
+    by JABS. Each frame holds up to n_contours closed polygons, because a 
+    segmentation can have several disjoint blobs and holes. Contours and vertex 
+    lists are padded to fixed capacities with the padding value; the capacities 
+    are the per-file maxima chosen by the producer.
+  attributes:
+  - name: padding_value
+    dtype: int16
+    default_value: -1
+    doc: Value used in `data` to mark unused contour slots and unused vertices 
+      within a contour.
+    required: false
+  datasets:
+  - name: data
+    dtype: int16
+    dims:
+    - - num_times
+      - num_contours
+      - num_vertices
+      - x, y
+    shape:
+    - - null
+      - null
+      - null
+      - 2
+    doc: Contour vertices as (x, y) pixel coordinates in the video frame. Unused
+      contour slots and vertices are filled with `padding_value`.
+  - name: external_flag
+    dtype: bool
+    dims:
+    - - num_times
+      - num_contours
+    shape:
+    - - null
+      - null
+    doc: True where the contour is an external (outer) boundary, False where it 
+      is an internal boundary (a hole) or the slot is unused.
+    quantity: '?'

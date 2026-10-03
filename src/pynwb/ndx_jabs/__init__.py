@@ -1,5 +1,5 @@
 from importlib.resources import files
-from pynwb import load_namespaces, get_class
+from pynwb import load_namespaces
 
 # Get path to the namespace.yaml file with the expected location when installed not in editable mode
 __location_of_this_file = files(__name__)
@@ -12,12 +12,12 @@ if not __spec_path.exists():
 # Load the namespace
 load_namespaces(str(__spec_path))
 
-# PyNWB generates the ContourSeries class from the spec using `get_class`.
-ContourSeries = get_class("ContourSeries", "ndx-jabs")
+# Import the classes only after the namespace is loaded: they register themselves with PyNWB on import.
+from .contour_series import ContourSeries  # noqa: E402
 
 __all__ = [
     "ContourSeries",
 ]
 
 # Remove these functions/modules from the package
-del load_namespaces, get_class, files, __location_of_this_file, __spec_path
+del load_namespaces, files, __location_of_this_file, __spec_path

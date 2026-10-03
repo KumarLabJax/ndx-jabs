@@ -27,13 +27,16 @@ Extends `TimeSeries`. Per-frame instance segmentation contours for one animal, s
 
 | Field | Type | Shape | Description |
 |---|---|---|---|
-| `data` | `int16` | `(num_times, num_contours, num_vertices, 2)` | Vertex `(x, y)` pixel coordinates in the video frame |
-| `external_flag` (optional) | `bool` | `(num_times, num_contours)` | `True` for an external (outer) contour, `False` for an internal contour (hole) or an unused slot |
-| `padding_value` (attribute, optional) | `int16` | scalar | Value marking unused contour slots and vertices in `data`; defaults to `-1` |
+| `data` | numeric (JABS writes `int16`) | `(num_frames, num_contours, num_vertices, 2)` | Vertex `(x, y)` positions. Only the first `vertex_count` vertices of each slot are real; the rest is padding with no meaning |
+| `vertex_count` | `uint32` | `(num_frames, num_contours)` | Number of valid vertices in each contour slot; `0` means the slot is empty on that frame |
+| `is_external` | `bool` | `(num_frames, num_contours)` | `True` for an external (outer) boundary, `False` for an internal boundary (a hole) |
+| `contour_group` (optional) | `uint32` | `(num_frames, num_contours)` | Groups contours into connected components within a frame, so each hole stays with the part that contains it |
+| `reference_frame` | text | scalar | What `(0, 0)` is and which way each axis increases |
 
 A segmentation can have several disjoint blobs and holes, so each frame holds up to `num_contours` closed polygons.
-Contour and vertex capacities are per-file maxima chosen by the producer, and unused entries are filled with
-`padding_value`.
+Contour and vertex capacities are per-file maxima chosen by the producer. `vertex_count` is authoritative, so a
+consumer never needs to look for a padding value. `unit` defaults to `pixels`. Name each series after the instance it
+describes, and store it alongside the `PoseEstimation` for that instance.
 
 ## Usage
 
@@ -51,12 +54,14 @@ nwbfile = NWBFile(
     session_start_time=datetime.datetime(2026, 1, 1, tzinfo=datetime.timezone.utc),
 )
 
+num_frames, num_contours, num_vertices = 3600, 4, 319
 contours = ContourSeries(
     name="contours_mouse0",
     description="JABS segmentation contours for mouse0",
-    data=np.full((3600, 4, 319, 2), -1, dtype=np.int16),
-    external_flag=np.zeros((3600, 4), dtype=bool),
-    unit="pixels",
+    data=np.full((num_frames, num_contours, num_vertices, 2), -1, dtype=np.int16),
+    vertex_count=np.zeros((num_frames, num_contours), dtype=np.uint32),
+    is_external=np.zeros((num_frames, num_contours), dtype=bool),
+    reference_frame="(0, 0) is the top left corner of the video frame, x increases rightward and y downward",
     rate=30.0,
 )
 nwbfile.add_acquisition(contours)

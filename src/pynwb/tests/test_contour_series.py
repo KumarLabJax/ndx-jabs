@@ -9,6 +9,8 @@ from pynwb import NWBHDF5IO, NWBFile, validate
 
 from ndx_jabs import ContourSeries
 
+REFERENCE_FRAME = "(0, 0) is the top left corner of the video frame, x increases rightward and y downward"
+
 
 def _nwbfile() -> NWBFile:
     return NWBFile(
@@ -18,37 +20,64 @@ def _nwbfile() -> NWBFile:
     )
 
 
-def _contours(n_frames: int = 6, n_contours: int = 3, n_vertices: int = 8) -> np.ndarray:
+def _series(n_frames: int = 6, n_contours: int = 3, n_vertices: int = 8, **overrides) -> ContourSeries:
+    """Build a ContourSeries with one real five-vertex external contour per frame and -1 padding elsewhere."""
     data = np.full((n_frames, n_contours, n_vertices, 2), -1, dtype=np.int16)
     data[:, 0, :5] = np.arange(10, dtype=np.int16).reshape(5, 2)
-    return data
+    vertex_count = np.zeros((n_frames, n_contours), dtype=np.uint32)
+    vertex_count[:, 0] = 5
+    is_external = np.zeros((n_frames, n_contours), dtype=bool)
+    is_external[:, 0] = True
+    kwargs = {
+        "name": "contours",
+        "data": data,
+        "vertex_count": vertex_count,
+        "is_external": is_external,
+        "reference_frame": REFERENCE_FRAME,
+        "rate": 30.0,
+    }
+    kwargs.update(overrides)
+    return ContourSeries(**kwargs)
 
 
 def test_constructor_stores_fields() -> None:
-    data = _contours()
-    flags = np.zeros((6, 3), dtype=bool)
-    flags[:, 0] = True
-    series = ContourSeries(name="contours", data=data, external_flag=flags, unit="pixels", rate=30.0)
+    series = _series()
     assert series.data.shape == (6, 3, 8, 2)
-    assert series.external_flag.shape == (6, 3)
+    assert series.vertex_count.shape == (6, 3)
+    assert series.is_external.shape == (6, 3)
+    assert series.reference_frame == REFERENCE_FRAME
 
 
-def test_external_flag_is_optional() -> None:
-    series = ContourSeries(name="contours", data=_contours(), unit="pixels", rate=30.0)
-    assert series.external_flag is None
+def test_unit_defaults_to_pixels() -> None:
+    assert _series().unit == "pixels"
 
 
-def test_padding_value_defaults_to_minus_one() -> None:
-    series = ContourSeries(name="contours", data=_contours(), unit="pixels", rate=30.0)
-    assert series.padding_value == -1
+def test_contour_group_is_optional() -> None:
+    assert _series().contour_group is None
 
 
-def test_round_trip_and_validate(tmp_path: Path) -> None:
-    data = _contours()
-    flags = np.zeros((6, 3), dtype=bool)
-    flags[:, 0] = True
+@pytest.mark.parametrize("missing", ["vertex_count", "is_external", "reference_frame"])
+def test_required_fields(missing: str) -> None:
+    kwargs = {
+        "name": "contours",
+        "data": np.zeros((2, 1, 4, 2), dtype=np.int16),
+        "vertex_count": np.zeros((2, 1), dtype=np.uint32),
+        "is_external": np.zeros((2, 1), dtype=bool),
+        "reference_frame": REFERENCE_FRAME,
+        "rate": 30.0,
+    }
+    del kwargs[missing]
+    with pytest.raises(TypeError):
+        ContourSeries(**kwargs)
+
+
+@pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float32], ids=["int16", "int32", "float32"])
+def test_round_trip_and_validate(tmp_path: Path, dtype: type) -> None:
+    series = _series()
+    expected = series.data.astype(dtype)
+    series = _series(data=expected, contour_group=np.zeros((6, 3), dtype=np.uint32))
     nwbfile = _nwbfile()
-    nwbfile.add_acquisition(ContourSeries(name="contours", data=data, external_flag=flags, unit="pixels", rate=30.0))
+    nwbfile.add_acquisition(series)
     path = tmp_path / "contours.nwb"
     with NWBHDF5IO(path, "w") as io:
         io.write(nwbfile)
@@ -57,18 +86,19 @@ def test_round_trip_and_validate(tmp_path: Path) -> None:
         assert validate(io=io) == []
         read = io.read().acquisition["contours"]
         assert isinstance(read, ContourSeries)
-        np.testing.assert_array_equal(read.data[:], data)
-        np.testing.assert_array_equal(read.external_flag[:], flags)
-        assert read.data.dtype == np.int16
+        assert read.data.dtype == dtype
+        np.testing.assert_array_equal(read.data[:], expected)
+        np.testing.assert_array_equal(read.vertex_count[:], series.vertex_count)
+        np.testing.assert_array_equal(read.is_external[:], series.is_external)
+        np.testing.assert_array_equal(read.contour_group[:], np.zeros((6, 3), dtype=np.uint32))
+        assert read.reference_frame == REFERENCE_FRAME
 
 
-@pytest.mark.filterwarnings("ignore::hdmf.build.warnings.IncorrectDatasetShapeBuildWarning")
-def test_wrong_dimensionality_fails_validation(tmp_path: Path) -> None:
-    nwbfile = _nwbfile()
-    nwbfile.add_acquisition(ContourSeries(name="bad", data=np.zeros((4, 3), dtype=np.int16), unit="pixels", rate=30.0))
-    path = tmp_path / "bad.nwb"
-    with NWBHDF5IO(path, "w") as io:
-        io.write(nwbfile)
+def test_wrong_dimensionality_is_rejected() -> None:
+    with pytest.raises(ValueError, match="data"):
+        _series(data=np.zeros((4, 3), dtype=np.int16))
 
-    with NWBHDF5IO(path, "r") as io:
-        assert validate(io=io) != []
+
+def test_wrong_vertex_count_dimensionality_is_rejected() -> None:
+    with pytest.raises(ValueError, match="vertex_count"):
+        _series(vertex_count=np.zeros(6, dtype=np.uint32))

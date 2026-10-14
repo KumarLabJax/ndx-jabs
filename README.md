@@ -1,12 +1,7 @@
 # ndx-jabs Extension for NWB
 
-NWB extension for storing JABS (JAX Animal Behavior System) algorithm internals, such as instance segmentation contours, and subject metadata for JAX studies
-
-General-purpose JABS outputs belong in tool-agnostic extensions: pose estimates in
-[ndx-pose](https://github.com/rly/ndx-pose) and behavior predictions in an ethogram extension.
-This extension holds the pieces that are internal to the
-[JABS](https://github.com/KumarLabJax/JABS-behavior-classifier) algorithms, so JABS users can keep them in their NWB
-files without adding them to the core schema.
+NWB extension for storing JABS (JAX Animal Behavior System) data, such as instance segmentation contours. General-purpose outputs belong in tool-agnostic extensions: e.g., pose estimates in
+[ndx-pose](https://github.com/rly/ndx-pose).
 
 ![JABS video frame, pose keypoints, and segmentation contour for one mouse](https://raw.githubusercontent.com/KumarLabJax/ndx-jabs/main/docs/images/contour-rendering-example.gif)
 

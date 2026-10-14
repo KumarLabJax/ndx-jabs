@@ -33,6 +33,52 @@ Contour and vertex capacities are per-file maxima chosen by the producer. `verte
 consumer never needs to look for a padding value. `unit` defaults to `pixels`. Name each series after the instance it
 describes, and store it alongside the `PoseEstimation` for that instance.
 
+### `JaxStudySubject`
+
+Extends `Subject`. Adds identifiers recorded for animals in JAX studies. Every added field is optional and is omitted
+when the value is unknown or not applicable.
+
+| Field | Type | Description |
+|---|---|---|
+| `housing_id` | text | Identifier of the housing (for example the cage) the animal was kept in |
+| `test_chamber` | text | Identifier of the test chamber (apparatus) the animal was tested in |
+
+### `JaxAgingSubject`
+
+Extends `JaxStudySubject`. Adds the frailty measurements and experimental covariates recorded for animals in the JAX
+aging studies, on top of `housing_id` and `test_chamber`. Every added field is optional.
+
+| Field | Type | Description |
+|---|---|---|
+| `cfi` | `float64` | Cumulative frailty index (CFI) score: a trained technician scores each of 28 items 0 (normal), 0.5 (partly affected) or 1 (affected) and the scores are summed. Not adjusted for tester, batch or diet |
+| `cfi_norm` | `float64` | `cfi` divided by the number of items (28), from 0 to 1; higher is frailer |
+| `pll` | `float64` | Proportion of life lived: age at the open-field test divided by age at death, from 0 to 1. Omitted for animals not followed to death |
+| `diet` | text | Diet intervention group: `AL` (ad libitum), `1D` or `2D` (fasting one day or two consecutive days per week), `20` or `40` (caloric restriction at 20% or 40% of baseline ad libitum food intake) |
+| `batch` | text | Data-collection batch of the frailty assessment (`Batch1` to `Batch3` for B6J, `Old` or `New` for DO) |
+| `tester` | text | Anonymized ID (`Scorer1` to `Scorer7`) of the trained expert who assigned the manual frailty-index score after the 1-hour open-field session. IDs are only comparable within one numbering: the combined-cohort and single-cohort analyses number the same scorers differently |
+
+Values are stored as given. The ranges above and the relationship between `cfi` and `cfi_norm` are documented but not
+validated, and neither is the set of `diet` values.
+
+Pass either as the `subject` of an `NWBFile`:
+
+```python
+from ndx_jabs import JaxAgingSubject
+
+subject = JaxAgingSubject(
+    subject_id="AgedB6-0396",
+    species="Mus musculus",
+    sex="M",
+    age="P55W",
+    cfi=7.5,
+    cfi_norm=0.267857143,
+    diet="AL",
+    batch="Batch1",
+    tester="Scorer3",
+    housing_id="cage-42",
+)
+```
+
 ## Usage
 
 ```python

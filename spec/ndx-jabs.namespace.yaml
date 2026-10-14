@@ -4,9 +4,10 @@ namespaces:
   contact:
   - glen.beane@jax.org
   doc: NWB extension for storing JABS (JAX Animal Behavior System) algorithm 
-    internals, such as instance segmentation contours
+    internals, such as instance segmentation contours, and subject metadata for 
+    JAX studies
   name: ndx-jabs
   schema:
   - namespace: core
   - source: ndx-jabs.extensions.yaml
-  version: 0.1.0
+  version: 0.2.0

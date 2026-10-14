@@ -14,19 +14,19 @@ class JaxAgingSubject(JaxStudySubject):
         *get_docval(JaxStudySubject.__init__),
         {
             "name": "cfi",
-            "type": float,
+            "type": ("int", "float"),
             "doc": "Cumulative frailty index score: manually scored item scores (0, 0.5 or 1) summed over 28 items.",
             "default": None,
         },
         {
             "name": "cfi_norm",
-            "type": float,
+            "type": ("int", "float"),
             "doc": "Cumulative frailty index divided by the number of items (28), from 0 to 1.",
             "default": None,
         },
         {
             "name": "pll",
-            "type": float,
+            "type": ("int", "float"),
             "doc": "Proportion of life lived: age at the open-field test divided by age at death. Unitless.",
             "default": None,
         },
@@ -57,9 +57,9 @@ class JaxAgingSubject(JaxStudySubject):
         batch = kwargs.pop("batch")
         tester = kwargs.pop("tester")
         super().__init__(**kwargs)
-        self.cfi = cfi
-        self.cfi_norm = cfi_norm
-        self.pll = pll
+        self.cfi = None if cfi is None else float(cfi)
+        self.cfi_norm = None if cfi_norm is None else float(cfi_norm)
+        self.pll = None if pll is None else float(pll)
         self.diet = diet
         self.batch = batch
         self.tester = tester

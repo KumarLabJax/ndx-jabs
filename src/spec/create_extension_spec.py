@@ -137,7 +137,8 @@ def main():
         doc=(
             "Subject with the frailty measurements and experimental covariates recorded for animals in the JAX "
             "aging and frailty studies. All added fields are optional and are omitted when the value is unknown "
-            "or not applicable."
+            "or not applicable. Values are stored as given: the ranges and the relationship between 'cfi' and "
+            "'cfi_norm' described below are not validated."
         ),
         datasets=[
             NWBDatasetSpec(

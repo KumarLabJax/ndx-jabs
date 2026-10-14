@@ -99,9 +99,11 @@ groups:
     quantity: '?'
 - neurodata_type_def: JaxAgingSubject
   neurodata_type_inc: JaxStudySubject
-  doc: Subject with the frailty measurements and experimental covariates 
-    recorded for animals in the JAX aging and frailty studies. All added fields 
-    are optional and are omitted when the value is unknown or not applicable.
+  doc: "Subject with the frailty measurements and experimental covariates recorded
+    for animals in the JAX aging and frailty studies. All added fields are optional
+    and are omitted when the value is unknown or not applicable. Values are stored
+    as given: the ranges and the relationship between 'cfi' and 'cfi_norm' described
+    below are not validated."
   datasets:
   - name: cfi
     dtype: float64

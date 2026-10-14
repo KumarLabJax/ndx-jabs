@@ -62,6 +62,9 @@ aging studies, on top of `housing_id` and `test_chamber`. Every added field is o
 | `batch` | text | Data-collection batch of the frailty assessment (`Batch1` to `Batch3` for B6J, `Old` or `New` for DO) |
 | `tester` | text | Anonymized ID (`Scorer1` to `Scorer7`) of the trained expert who assigned the manual frailty-index score after the 1-hour open-field session. IDs are only comparable within one numbering: the combined-cohort and single-cohort analyses number the same scorers differently |
 
+Values are stored as given. The ranges above and the relationship between `cfi` and `cfi_norm` are documented but not
+validated, and neither is the set of `diet` values.
+
 Pass either as the `subject` of an `NWBFile`:
 
 ```python

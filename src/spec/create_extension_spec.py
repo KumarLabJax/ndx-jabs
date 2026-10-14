@@ -8,10 +8,10 @@ def main():
     # these arguments were auto-generated from your cookiecutter inputs
     ns_builder = NWBNamespaceBuilder(
         name="""ndx-jabs""",
-        version="""0.1.0""",
+        version="""0.2.0""",
         doc=(
             "NWB extension for storing JABS (JAX Animal Behavior System) algorithm internals, "
-            "such as instance segmentation contours"
+            "such as instance segmentation contours, and subject metadata for JAX studies"
         ),
         author=[
             "The Jackson Laboratory",
@@ -108,7 +108,102 @@ def main():
         ],
     )
 
-    new_data_types = [contour_series]
+    jax_study_subject = NWBGroupSpec(
+        neurodata_type_def="JaxStudySubject",
+        neurodata_type_inc="Subject",
+        doc=(
+            "Subject with the housing and test-apparatus identifiers recorded for animals in JAX studies. All "
+            "added fields are optional and are omitted when the value is unknown or not applicable."
+        ),
+        datasets=[
+            NWBDatasetSpec(
+                name="housing_id",
+                doc="Identifier of the housing (for example the cage) the animal was kept in.",
+                dtype="text",
+                quantity="?",
+            ),
+            NWBDatasetSpec(
+                name="test_chamber",
+                doc="Identifier of the test chamber (apparatus) the animal was tested in.",
+                dtype="text",
+                quantity="?",
+            ),
+        ],
+    )
+
+    jax_aging_subject = NWBGroupSpec(
+        neurodata_type_def="JaxAgingSubject",
+        neurodata_type_inc="JaxStudySubject",
+        doc=(
+            "Subject with the frailty measurements and experimental covariates recorded for animals in the JAX "
+            "aging and frailty studies. All added fields are optional and are omitted when the value is unknown "
+            "or not applicable."
+        ),
+        datasets=[
+            NWBDatasetSpec(
+                name="cfi",
+                doc=(
+                    "Cumulative frailty index (CFI) score. A trained technician scores each frailty-index item "
+                    "0 (normal), 0.5 (partly affected) or 1 (affected), and the item scores are summed. Not "
+                    "adjusted for tester, batch or diet. 'cfi_norm' is this value divided by the number of items "
+                    "(28)."
+                ),
+                dtype="float64",
+                quantity="?",
+            ),
+            NWBDatasetSpec(
+                name="cfi_norm",
+                doc=(
+                    "Cumulative frailty index divided by the number of frailty-index items (28), so it runs from 0 "
+                    "to 1 with higher values meaning frailer."
+                ),
+                dtype="float64",
+                quantity="?",
+            ),
+            NWBDatasetSpec(
+                name="pll",
+                doc=(
+                    "Proportion of life lived (PLL): the animal's age at the open-field test divided by its age "
+                    "at death. Unitless, from 0 to 1; values closer to 1 mean the animal was nearer the end of "
+                    "life. Omitted for animals that were not followed to death."
+                ),
+                dtype="float64",
+                quantity="?",
+            ),
+            NWBDatasetSpec(
+                name="diet",
+                doc=(
+                    "Diet intervention group: 'AL' for ad libitum feeding; '1D' or '2D' for fasting one day or two "
+                    "consecutive days per week; '20' or '40' for caloric restriction at 20% or 40% of baseline "
+                    "ad libitum food intake."
+                ),
+                dtype="text",
+                quantity="?",
+            ),
+            NWBDatasetSpec(
+                name="batch",
+                doc=(
+                    "Data-collection batch of the frailty assessment. Tester, batch and diet are factors whose "
+                    "effects are adjusted out of the frailty scores in analysis."
+                ),
+                dtype="text",
+                quantity="?",
+            ),
+            NWBDatasetSpec(
+                name="tester",
+                doc=(
+                    "Anonymized ID of the trained expert who assigned the manual frailty-index score after the "
+                    "animal's 1-hour open-field session, the human reference that machine-vision frailty "
+                    "estimates are compared against. IDs are only comparable within one numbering: the "
+                    "combined-cohort and single-cohort analyses number the same scorers differently."
+                ),
+                dtype="text",
+                quantity="?",
+            ),
+        ],
+    )
+
+    new_data_types = [contour_series, jax_study_subject, jax_aging_subject]
 
     # export the spec to yaml files in the root spec folder
     output_dir = str((Path(__file__).parent.parent.parent / "spec").absolute())

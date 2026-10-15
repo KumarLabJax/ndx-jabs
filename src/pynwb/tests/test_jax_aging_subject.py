@@ -14,8 +14,6 @@ AGING_FIELDS = {
     "cfi_norm": 0.267857143,
     "pll": 0.82,
     "diet": "40",
-    "batch": "Batch1",
-    "tester": "Scorer3",
 }
 STUDY_FIELDS = {"housing_id": "cage-42", "test_chamber": "chamber-A"}
 
@@ -70,11 +68,11 @@ def test_round_trip_all_fields(tmp_path: Path) -> None:
 
 
 def test_round_trip_omits_absent_fields(tmp_path: Path) -> None:
-    """A B6 animal with no PLL and no tester round-trips with those fields absent."""
-    fields = {k: v for k, v in AGING_FIELDS.items() if k not in ("pll", "tester")}
+    """A B6 animal with no PLL and no diet round-trips with those fields absent."""
+    fields = {k: v for k, v in AGING_FIELDS.items() if k not in ("pll", "diet")}
     read = _round_trip(tmp_path, _subject(**fields))
     assert read.pll is None
-    assert read.tester is None
+    assert read.diet is None
     assert read.cfi == pytest.approx(7.5)
 
 

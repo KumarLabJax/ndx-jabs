@@ -8,10 +8,10 @@ def main():
     # these arguments were auto-generated from your cookiecutter inputs
     ns_builder = NWBNamespaceBuilder(
         name="""ndx-jabs""",
-        version="""0.2.0""",
+        version="""0.3.0""",
         doc=(
             "NWB extension for storing JABS (JAX Animal Behavior System) algorithm internals, "
-            "such as instance segmentation contours, and subject metadata for JAX studies"
+            "such as instance segmentation contours, and subject and session metadata for JAX studies"
         ),
         author=[
             "The Jackson Laboratory",
@@ -181,6 +181,18 @@ def main():
                 dtype="text",
                 quantity="?",
             ),
+        ],
+    )
+
+    jax_aging_study_metadata = NWBGroupSpec(
+        neurodata_type_def="JaxAgingStudyMetaData",
+        neurodata_type_inc="LabMetaData",
+        default_name="jax_aging",
+        doc=(
+            "Session-level metadata for the JAX aging and frailty studies. All fields are optional and are omitted "
+            "when the value is unknown or not applicable. Values are stored as given and are not validated."
+        ),
+        datasets=[
             NWBDatasetSpec(
                 name="batch",
                 doc=(
@@ -204,7 +216,7 @@ def main():
         ],
     )
 
-    new_data_types = [contour_series, jax_study_subject, jax_aging_subject]
+    new_data_types = [contour_series, jax_study_subject, jax_aging_subject, jax_aging_study_metadata]
 
     # export the spec to yaml files in the root spec folder
     output_dir = str((Path(__file__).parent.parent.parent / "spec").absolute())

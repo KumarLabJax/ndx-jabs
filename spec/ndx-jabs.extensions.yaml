@@ -130,6 +130,13 @@ groups:
       one day or two consecutive days per week; '20' or '40' for caloric restriction
       at 20% or 40% of baseline ad libitum food intake."
     quantity: '?'
+- neurodata_type_def: JaxAgingStudyMetaData
+  neurodata_type_inc: LabMetaData
+  default_name: jax_aging
+  doc: Session-level metadata for the JAX aging and frailty studies. All fields 
+    are optional and are omitted when the value is unknown or not applicable. 
+    Values are stored as given and are not validated.
+  datasets:
   - name: batch
     dtype: text
     doc: Data-collection batch of the frailty assessment. Tester, batch and diet

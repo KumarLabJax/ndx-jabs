@@ -15,11 +15,13 @@ load_namespaces(str(__spec_path))
 # Import the classes only after the namespace is loaded: they register themselves with PyNWB on import.
 from .contour_series import ContourSeries  # noqa: E402
 from .jax_study_subject import JaxStudySubject  # noqa: E402
+from .jax_aging_study_metadata import JaxAgingStudyMetaData  # noqa: E402
 from .jax_aging_subject import JaxAgingSubject  # noqa: E402
 
 __all__ = [
     "ContourSeries",
     "JaxStudySubject",
+    "JaxAgingStudyMetaData",
     "JaxAgingSubject",
 ]
 

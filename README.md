@@ -45,8 +45,8 @@ when the value is unknown or not applicable.
 
 ### `JaxAgingSubject`
 
-Extends `JaxStudySubject`. Adds the frailty measurements and experimental covariates recorded for animals in the JAX
-aging studies, on top of `housing_id` and `test_chamber`. Every added field is optional.
+Extends `JaxStudySubject`. Adds the frailty measurements and diet recorded for animals in the JAX aging
+studies, on top of `housing_id` and `test_chamber`. Every added field is optional.
 
 | Field | Type | Description |
 |---|---|---|
@@ -54,13 +54,21 @@ aging studies, on top of `housing_id` and `test_chamber`. Every added field is o
 | `cfi_norm` | `float64` | `cfi` divided by the number of items (28), from 0 to 1; higher is frailer |
 | `pll` | `float64` | Proportion of life lived: age at the open-field test divided by age at death, from 0 to 1. Omitted for animals not followed to death |
 | `diet` | text | Diet intervention group: `AL` (ad libitum), `1D` or `2D` (fasting one day or two consecutive days per week), `20` or `40` (caloric restriction at 20% or 40% of baseline ad libitum food intake) |
+
+### `JaxAgingStudyMetaData`
+
+Extends `LabMetaData`. Session-level metadata for the JAX aging studies. Add it with `nwbfile.add_lab_meta_data(...)`; it
+is named `jax_aging` by default. Every field is optional.
+
+| Field | Type | Description |
+|---|---|---|
 | `batch` | text | Data-collection batch of the frailty assessment (`Batch1` to `Batch3` for B6J, `Old` or `New` for DO) |
 | `tester` | text | Anonymized ID (`Scorer1` to `Scorer7`) of the trained expert who assigned the manual frailty-index score after the 1-hour open-field session. IDs are only comparable within one numbering: the combined-cohort and single-cohort analyses number the same scorers differently |
 
 Values are stored as given. The ranges above and the relationship between `cfi` and `cfi_norm` are documented but not
 validated, and neither is the set of `diet` values.
 
-Pass either as the `subject` of an `NWBFile`:
+Pass the subject types as the `subject` of an `NWBFile`:
 
 ```python
 from ndx_jabs import JaxAgingSubject
@@ -73,10 +81,16 @@ subject = JaxAgingSubject(
     cfi=7.5,
     cfi_norm=0.267857143,
     diet="AL",
-    batch="Batch1",
-    tester="Scorer3",
     housing_id="cage-42",
 )
+```
+
+and the session metadata with `add_lab_meta_data`:
+
+```python
+from ndx_jabs import JaxAgingStudyMetaData
+
+nwbfile.add_lab_meta_data(JaxAgingStudyMetaData(batch="Batch1", tester="Scorer3"))
 ```
 
 ## Usage
